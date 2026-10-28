@@ -1,0 +1,29 @@
+{
+  "name": "minikeyboard-web",
+  "version": "1.2.0",
+  "description": "Key bindings for MINI KeyBoard macro keypads (USB 1189 · 514C 884x family), in the browser over WebHID",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "check": "prettier --check . && svelte-check --fail-on-warnings && node scripts/check-layers.mjs"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/w3c-web-hid": "1.0.7",
+    "prettier": "3.9.10",
+    "prettier-plugin-svelte": "4.1.1",
+    "svelte": "5.57.3",
+    "svelte-check": "4.7.7",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

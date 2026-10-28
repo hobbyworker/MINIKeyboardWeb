@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>MINIKeyboard Web — development page</title>
+        <!-- For development only: a stand-in for the page that holds the app, with a header and footer of its own,
+             and switches for the language, the theme and the width the page gives the app. -->
+        <style>
+            :root {
+                color-scheme: light dark;
+                --page: #ffffff;
+                --text: #1d1d1f;
+                --line: #d2d2d7;
+            }
+            :root[data-theme="dark"] {
+                --page: #16161a;
+                --text: #e8e8ed;
+                --line: #3a3a3f;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root:not([data-theme="light"]) {
+                    --page: #16161a;
+                    --text: #e8e8ed;
+                    --line: #3a3a3f;
+                }
+            }
+            body {
+                margin: 0;
+                background: var(--page);
+                color: var(--text);
+                font:
+                    16px/1.6 system-ui,
+                    sans-serif;
+            }
+            header,
+            footer {
+                border-bottom: 1px solid var(--line);
+                padding: 12px 24px;
+                display: flex;
+                gap: 16px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            footer {
+                border-top: 1px solid var(--line);
+                border-bottom: 0;
+                color: #888;
+                font-size: 14px;
+            }
+            main {
+                margin: 32px auto;
+                padding: 0 16px;
+            }
+            label {
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <strong>Host page header (stand-in)</strong>
+            <label
+                >Language
+                <select id="lang">
+                    <option>en</option>
+                    <option>ko</option>
+                    <option>ja</option>
+                    <option>zh-hans</option>
+                    <option>zh-hant</option>
+                    <option>es</option>
+                    <option>pt</option>
+                    <option>fr</option>
+                    <option>de</option>
+                    <option>it</option>
+                    <option>pl</option>
+                    <option>id</option>
+                    <option>vi</option>
+                </select>
+            </label>
+            <label
+                >Theme
+                <select id="theme">
+                    <option value="">auto</option>
+                    <option>light</option>
+                    <option>dark</option>
+                </select>
+            </label>
+            <label
+                >Width
+                <select id="width">
+                    <option value="1200px">1200</option>
+                    <option value="800px">800</option>
+                    <option value="420px">420</option>
+                </select>
+            </label>
+        </header>
+        <main id="main" style="max-width: 1200px">
+            <h1>MINIKeyboard</h1>
+            <minikeyboard-app id="app" lang="en"></minikeyboard-app>
+        </main>
+        <footer>Host page footer (stand-in)</footer>
+        <script type="module">
+            // ?lang=ko&theme=dark&width=420&simulator=1189:8840-6-1-10 — set before the element is defined, so a
+            // screenshot can open on any scene.
+            const params = new URLSearchParams(location.search);
+            const app = document.getElementById("app");
+            const lang = document.getElementById("lang");
+            const theme = document.getElementById("theme");
+            const width = document.getElementById("width");
+            const main = document.getElementById("main");
+            const applyTheme = (value) => {
+                if (value) {
+                    app.setAttribute("theme", value);
+                    document.documentElement.dataset.theme = value;
+                } else {
+                    app.removeAttribute("theme");
+                    delete document.documentElement.dataset.theme;
+                }
+            };
+            if (params.get("lang")) lang.value = params.get("lang");
+            if (params.get("theme")) theme.value = params.get("theme");
+            if (params.get("width")) main.style.maxWidth = params.get("width") + "px";
+            if (params.get("simulator")) app.setAttribute("simulator", params.get("simulator"));
+            app.setAttribute("lang", lang.value);
+            applyTheme(theme.value);
+            lang.onchange = () => app.setAttribute("lang", lang.value);
+            theme.onchange = () => applyTheme(theme.value);
+            width.onchange = () => (main.style.maxWidth = width.value);
+            await import("/src/app/main.ts");
+        </script>
+    </body>
+</html>
