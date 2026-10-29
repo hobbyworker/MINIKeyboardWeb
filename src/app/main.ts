@@ -1,7 +1,7 @@
 // The module the page loads: it defines <minikeyboard-app>, once — a page may load it twice.
 
-import { MiniKeyboardElement, TAG } from "./element.svelte";
+import { defineMiniKeyboard, MiniKeyboardElement } from "./element.svelte";
 
-if (!customElements.get(TAG)) customElements.define(TAG, MiniKeyboardElement);
+defineMiniKeyboard();
 
 export { MiniKeyboardElement };

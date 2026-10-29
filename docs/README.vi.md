@@ -98,13 +98,22 @@ hãy chọn bàn phím cần mở bằng nút bên cạnh trạng thái kết n�
 
 | Thuộc tính | |
 |---|---|
-| `lang` | Ngôn ngữ của trang — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (dạng có vùng như `ko-KR` hay `zh-TW` cũng được). Giá trị khác là tiếng Anh. |
-| `theme` | `light` hoặc `dark`; nếu không có, ứng dụng theo hệ thống. |
+| `lang` | Ngôn ngữ của trang — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (dạng có vùng như `ko-KR` hay `zh-TW` cũng được). Giá trị khác là tiếng Anh. Nếu không có, theo ngôn ngữ của trang: `lang` của phần tử hoặc phần tử tổ tiên, lên tới `<html>`. |
+| `theme` | `light` hoặc `dark`. Nếu không có, ứng dụng theo chế độ tối của trang — `data-theme` (như Hugo FixIt đặt), lớp `dark` hoặc `color-scheme` nội tuyến trên `<html>` hay `<body>` — và nếu không có thì theo hệ thống. |
 
 Ứng dụng vẽ trong shadow root, nên kiểu dáng của trang và của ứng dụng không lẫn vào nhau; phông chữ thì lấy theo
 trang. Ứng dụng không có tên, biểu tượng hay liên kết riêng — những thứ đó thuộc về trang. Văn bản của từng ngôn ngữ là
 một tệp nằm cạnh `minikeyboard.js`, được tải theo đường dẫn tương đối với tệp đó khi ngôn ngữ ấy được chọn — hãy đưa cả
 thư mục `dist/` lên cùng nhau.
+
+Bản dựng riêng có thể thêm vào ứng dụng: kế thừa `MiniKeyboardElement` từ `src/app/index.ts`, trả về một component
+Svelte từ `footer()` — được vẽ ở cuối ứng dụng, theo màu của nó và ngôn ngữ đang hiển thị — rồi đăng ký lớp con bằng
+`defineMiniKeyboard()`.
+
+Ứng dụng cũng báo cho trang biết những gì xảy ra: một sự kiện `minikeyboard` — lan lên (bubble) và ra khỏi shadow root
+— mỗi lần kết nối, đọc, lưu, trả lời yêu cầu quyền truy cập và gặp sự cố. `detail.action` là `connect`, `read`,
+`save`, `access` hoặc `problem`, kèm loại bàn phím và kết quả, nhưng không bao giờ có nội dung đã gán cho các phím.
+Bản thân ứng dụng không gửi gì đi đâu cả.
 
 ## Build
 

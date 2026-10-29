@@ -101,13 +101,22 @@ consentite, un pulsante accanto allo stato della connessione sceglie quella da a
 
 | Attributo | |
 |---|---|
-| `lang` | La lingua della pagina – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (funzionano anche le forme con la regione, come `ko-KR` o `zh-TW`). Qualsiasi altro valore dà l’inglese. |
-| `theme` | `light` o `dark`; senza, l’app segue il sistema. |
+| `lang` | La lingua della pagina – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (funzionano anche le forme con la regione, come `ko-KR` o `zh-TW`). Qualsiasi altro valore dà l’inglese. Senza, quella della pagina: il `lang` dell’elemento o di un antenato, fino a `<html>`. |
+| `theme` | `light` o `dark`. Senza, l’app segue la modalità scura della pagina – `data-theme` (come lo imposta Hugo FixIt), una classe `dark` o un `color-scheme` in linea su `<html>` o `<body>` – e altrimenti il sistema. |
 
 L’app disegna in una shadow root, quindi gli stili della pagina e quelli dell’app non si mescolano; il carattere lo
 prende dalla pagina. Non ha nome, icona né link propri: quelli spettano alla pagina. I testi di ogni lingua sono in un
 file accanto a `minikeyboard.js`, caricato in modo relativo a esso quando viene scelta quella lingua – pubblica insieme
 l’intera cartella `dist/`.
+
+Una build propria può aggiungere qualcosa all’app: estendi `MiniKeyboardElement` da `src/app/index.ts`, restituisci un
+componente Svelte da `footer()` – disegnato in fondo all’app, nei suoi colori e nella lingua che sta mostrando – e
+registra la sottoclasse con `defineMiniKeyboard()`.
+
+L’app comunica anche alla pagina ciò che succede: un evento `minikeyboard` – che risale ed esce dallo shadow root – a
+ogni connessione, lettura, salvataggio, risposta alla richiesta di permesso e problema. `detail.action` è `connect`,
+`read`, `save`, `access` o `problem`, con il tipo di tastiera e l’esito, ma mai ciò che è stato assegnato ai tasti.
+L’app di per sé non invia nulla da nessuna parte.
 
 ## Compilazione
 

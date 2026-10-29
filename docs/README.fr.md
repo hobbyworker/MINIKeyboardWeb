@@ -104,13 +104,22 @@ branchés, un bouton à côté de l’état de la connexion permet de choisir ce
 
 | Attribut | |
 |---|---|
-| `lang` | La langue de la page – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (les formes avec région comme `ko-KR` ou `zh-TW` fonctionnent aussi). Toute autre valeur donne l’anglais. |
-| `theme` | `light` ou `dark` ; sans lui, l’app suit le système. |
+| `lang` | La langue de la page – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (les formes avec région comme `ko-KR` ou `zh-TW` fonctionnent aussi). Toute autre valeur donne l’anglais. Sans lui, celle de la page : le `lang` de l’élément ou d’un ancêtre, jusqu’à `<html>`. |
+| `theme` | `light` ou `dark`. Sans lui, l’app suit le mode sombre de la page – `data-theme` (comme le pose Hugo FixIt), une classe `dark` ou un `color-scheme` en ligne sur `<html>` ou `<body>` – et sinon le système. |
 
 L’app dessine dans une shadow root, si bien que les styles de la page et ceux de l’app ne se mélangent pas ; elle
 reprend la police de la page. Elle n’a ni nom, ni icône, ni liens à elle – ceux-ci appartiennent à la page. Les textes
 de chaque langue se trouvent dans un fichier à côté de `minikeyboard.js`, chargé relativement à celui-ci quand cette
 langue est choisie – servez tout le dossier `dist/` ensemble.
+
+Une version à soi peut compléter l’app : dériver `MiniKeyboardElement` de `src/app/index.ts`, renvoyer un composant
+Svelte depuis `footer()` – dessiné tout en bas de l’app, dans ses couleurs et la langue qu’elle affiche – et
+enregistrer la sous-classe avec `defineMiniKeyboard()`.
+
+L’app indique aussi à la page ce qui se passe : un événement `minikeyboard` – qui remonte et sort du shadow root – à
+chaque connexion, lecture, enregistrement, réponse à la demande d’accès et problème. `detail.action` vaut `connect`,
+`read`, `save`, `access` ou `problem`, avec le type de clavier et le résultat, mais jamais ce qui a été attribué aux
+touches. L’app elle-même n’envoie rien nulle part.
 
 ## Compilation
 

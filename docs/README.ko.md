@@ -86,12 +86,19 @@ MINIKeyboard 는 같은 규칙으로 만든 네 판이 있습니다 — 같은 �
 
 | 속성 | |
 |---|---|
-| `lang` | 페이지의 언어 — `en` · `ko` · `ja` · `zh-hans` · `zh-hant` · `es` · `pt` · `fr` · `de` · `it` · `pl` · `id` · `vi` (`ko-KR` · `zh-TW` 같은 지역 꼴도 됩니다). 그 밖에는 영어입니다. |
-| `theme` | `light` 또는 `dark`. 없으면 시스템을 따릅니다. |
+| `lang` | 페이지의 언어 — `en` · `ko` · `ja` · `zh-hans` · `zh-hant` · `es` · `pt` · `fr` · `de` · `it` · `pl` · `id` · `vi` (`ko-KR` · `zh-TW` 같은 지역 꼴도 됩니다). 그 밖에는 영어입니다. 없으면 페이지의 것 — 요소나 그 조상(`<html>` 까지)의 `lang` 을 따릅니다. |
+| `theme` | `light` 또는 `dark`. 없으면 페이지의 다크 모드 — `<html>` 이나 `<body>` 의 `data-theme`(Hugo FixIt 처럼), `dark` 클래스, 인라인 `color-scheme` — 를, 그것도 없으면 시스템을 따릅니다. |
 
 앱은 shadow root 에 그리므로 페이지의 스타일과 앱의 스타일이 섞이지 않고, 글꼴은 페이지의 것을 물려받습니다. 앱에는 이름 ·
 아이콘 · 링크가 없습니다 — 그것은 페이지의 몫입니다. 언어마다의 문구는 `minikeyboard.js` 옆의 파일이고, 그 언어를 고를 때
 `minikeyboard.js` 를 기준으로 불러옵니다 — `dist/` 폴더를 통째로 함께 올리세요.
+
+자기 빌드에서 앱에 덧붙일 수도 있습니다. `src/app/index.ts` 의 `MiniKeyboardElement` 를 상속해 `footer()` 에서 Svelte 컴포넌트를 돌려주면 앱의 맨 아래에 앱의
+색과 지금 언어로 그려지고, 그 클래스는 `defineMiniKeyboard()` 로 등록합니다.
+
+앱은 일어난 일을 페이지에 알립니다. 연결 · 읽기 · 저장 · 장치 허용의 답 · 문제가 있을 때마다 `minikeyboard` 이벤트를 보내고(버블링하며 shadow root
+밖까지 나옵니다), `detail.action` 은 `connect` · `read` · `save` · `access` · `problem` 가운데 하나입니다. 키보드의 종류와
+결과만 담고 키에 무엇을 넣었는지는 담지 않습니다. 앱 자신은 어디로도 아무것도 보내지 않습니다.
 
 ## 빌드
 

@@ -71,10 +71,14 @@ MINIKeyboard 有四个按相同规则制作的版本——相同的命令、相�
 
 | 属性 | |
 |---|---|
-| `lang` | 页面的语言：`en`、`ko`、`ja`、`zh-hans`、`zh-hant`、`es`、`pt`、`fr`、`de`、`it`、`pl`、`id`、`vi`（`ko-KR`、`zh-TW` 这样带地区的形式也可以）。其他值一律为英语。 |
-| `theme` | `light` 或 `dark`；不指定时跟随系统。 |
+| `lang` | 页面的语言：`en`、`ko`、`ja`、`zh-hans`、`zh-hant`、`es`、`pt`、`fr`、`de`、`it`、`pl`、`id`、`vi`（`ko-KR`、`zh-TW` 这样带地区的形式也可以）。其他值一律为英语。不指定时跟随页面：元素或其祖先（直到 `<html>`）的 `lang`。 |
+| `theme` | `light` 或 `dark`。不指定时跟随页面的深色模式（`<html>` 或 `<body>` 上的 `data-theme`（Hugo FixIt 的做法）、`dark` 类或内联的 `color-scheme`），都没有时跟随系统。 |
 
 应用在 shadow root 中绘制，因此页面的样式和应用的样式不会混在一起；字体沿用页面的字体。应用没有自己的名称、图标或链接——这些由页面负责。各语言的文字是 `minikeyboard.js` 旁边的文件，选择该语言时以 `minikeyboard.js` 为基准按相对路径加载——请把整个 `dist/` 文件夹一起部署。
+
+自己的构建可以给应用添加内容：继承 `src/app/index.ts` 中的 `MiniKeyboardElement`，在 `footer()` 中返回一个 Svelte 组件——它会以应用的颜色和当前显示的语言绘制在应用的最下方——然后用 `defineMiniKeyboard()` 注册这个子类。
+
+应用还会把发生的事告诉页面：每次连接、读取、保存、授权请求得到答复以及出现问题时，都会发出一个 `minikeyboard` 事件（会冒泡，并能传出 shadow root），`detail.action` 为 `connect`、`read`、`save`、`access` 或 `problem`。它只包含键盘的类型和结果，不包含按键被设置成了什么。应用本身不会向任何地方发送任何内容。
 
 ## 构建
 

@@ -18,6 +18,7 @@ import {
     SetLightingUseCase,
     SetPressDelayUseCase,
     SimulatedModel,
+    formatUsbIdentity,
     sameUsbIdentity,
     type ChooseLayoutUseCase,
     type ConnectedKeyboard,
@@ -55,6 +56,7 @@ import {
     type Rgb,
 } from "./choices";
 import { EditorState } from "./editor-state";
+import type { EditorEvent } from "./events";
 import { structurallyEqual } from "./equality";
 import * as screen from "./screen";
 import {
@@ -160,6 +162,7 @@ export class EditorModel {
     private readonly state = new EditorState();
     private readonly deps: EditorDependencies;
     private readonly listeners = new Set<() => void>();
+    private readonly eventListeners = new Set<(event: EditorEvent) => void>();
 
     constructor(deps: EditorDependencies) {
         this.deps = deps;
@@ -172,6 +175,23 @@ export class EditorModel {
         return () => {
             this.listeners.delete(entry);
         };
+    }
+
+    /** Hears what happened ({@link EditorEvent}) — a connection, a read, a save, a problem — until the returned call. */
+    onEvent(listener: (event: EditorEvent) => void): () => void {
+        const entry = (event: EditorEvent) => listener(event);
+        this.eventListeners.add(entry);
+        return () => {
+            this.eventListeners.delete(entry);
+        };
+    }
+
+    private emit(event: EditorEvent): void {
+        for (const listener of [...this.eventListeners]) listener(event);
+    }
+
+    private simulated(): boolean {
+        return KeyboardSource.isSimulated(this.state.source);
     }
 
     /** Changes the state, then tells the listeners — after the change is done, so they can read it. */
@@ -306,6 +326,13 @@ export class EditorModel {
     // Connection
 
     private async connectionChanged(next: ConnectionState): Promise<void> {
+        const before = this.state.connection.kind;
+        if (
+            next.kind !== before &&
+            (next.kind === "unsupported" || next.kind === "needsPermission" || next.kind === "openFailed")
+        ) {
+            this.emit({ action: "problem", problem: next.kind });
+        }
         const identify = this.update((state) => {
             const previous = state.keyboard();
             state.connection = next;
@@ -418,7 +445,9 @@ export class EditorModel {
      * plugged in is ({@link selectKeyboard}) — with none open, at once. Rejects as the connection's request does.
      */
     async requestAccess(): Promise<void> {
-        const granted = await this.deps.requestAccess?.execute();
+        if (!this.deps.requestAccess) return;
+        const granted = await this.deps.requestAccess.execute();
+        this.emit({ action: "access", granted: granted != null });
         if (granted != null) this.selectKeyboard(granted);
     }
 
@@ -434,7 +463,11 @@ export class EditorModel {
         try {
             identified = await this.deps.identifyKeyboard.execute();
         } catch {
-            await this.finish(serial, (state) => state.show({ kind: "identifyFailed" }));
+            const shown = await this.finish(serial, (state) => {
+                state.show({ kind: "identifyFailed" });
+                return true;
+            });
+            if (shown !== undefined) this.emit({ action: "problem", problem: "identifyFailed" });
             return;
         }
         const resolveLayout = this.deps.resolveLayout;
@@ -448,6 +481,15 @@ export class EditorModel {
             state.layer = Math.min(state.layer, capabilities.layerCount() - 1);
             if (!state.availableTabs().includes(state.tab)) state.tab = "keys";
             return capabilities.reading() === "onConnect";
+        });
+        if (readNow === undefined) return;
+        this.emit({
+            action: "connect",
+            usb: formatUsbIdentity(keyboard.usb),
+            type: identified.identity?.kind ?? null,
+            format: identified.format,
+            knownType: identified.identity === null || KeyboardIdentity.isKnownType(identified.identity),
+            simulated: this.simulated(),
         });
         if (readNow) await this.readWith(false);
         const identity = identified.identity;
@@ -505,15 +547,23 @@ export class EditorModel {
         try {
             outcome = await this.deps.readKeyboard.execute(configuration, capabilities, resolved.layout);
         } catch {
-            await this.finish(serial, (state) => state.show({ kind: "readFailed" }));
+            const failed = await this.finish(serial, (state) => {
+                state.show({ kind: "readFailed" });
+                return true;
+            });
+            if (failed !== undefined)
+                this.emit({ action: "read", result: "failed", automatic: !announce, simulated: this.simulated() });
             return;
         }
-        await this.finish(serial, (state) => {
+        const result = await this.finish(serial, (state) => {
             state.configuration = outcome.configuration;
             if (outcome.error !== null) state.show({ kind: "readFailed" });
             else if (outcome.unread.size > 0) state.show({ kind: "readIncomplete" });
             else if (announce) state.show({ kind: "readComplete" });
+            return outcome.error !== null ? "failed" : outcome.unread.size > 0 ? "incomplete" : "complete";
         });
+        if (result !== undefined)
+            this.emit({ action: "read", result, automatic: !announce, simulated: this.simulated() });
     }
 
     async save(): Promise<void> {
@@ -532,17 +582,23 @@ export class EditorModel {
         try {
             result = await this.deps.saveKeyboard.execute(configuration, capabilities, resolved.layout);
         } catch (error) {
-            await this.finish(serial, (state) => state.show(saveFailure(error)));
+            const failed = await this.finish(serial, (state) => {
+                state.show(saveFailure(error));
+                return true;
+            });
+            if (failed !== undefined) this.emit({ action: "save", result: "failed", simulated: this.simulated() });
             return;
         }
-        await this.finish(serial, (state) => {
+        const check = await this.finish(serial, (state) => {
             if (result.kind === "saved") {
                 state.configuration = result.configuration;
                 state.show(savedNotice(result.check, KeyboardSource.isSimulated(state.source)));
-            } else {
-                state.show({ kind: "nothingToSave" });
+                return result.check.kind;
             }
+            state.show({ kind: "nothingToSave" });
+            return null;
         });
+        if (check != null) this.emit({ action: "save", result: check, simulated: this.simulated() });
     }
 
     // Layout

@@ -103,13 +103,22 @@ geöffnet wird.
 
 | Attribut | |
 |---|---|
-| `lang` | Die Sprache der Seite – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (Formen mit Region wie `ko-KR` oder `zh-TW` funktionieren auch). Alles andere ist Englisch. |
-| `theme` | `light` oder `dark`; ohne das Attribut folgt die App dem System. |
+| `lang` | Die Sprache der Seite – `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (Formen mit Region wie `ko-KR` oder `zh-TW` funktionieren auch). Alles andere ist Englisch. Ohne das Attribut gilt die der Seite: das `lang` des Elements oder eines Vorfahren bis hinauf zu `<html>`. |
+| `theme` | `light` oder `dark`. Ohne das Attribut folgt die App dem dunklen Modus der Seite – `data-theme` (wie Hugo FixIt es setzt), einer Klasse `dark` oder einem Inline-`color-scheme` an `<html>` oder `<body>` – und sonst dem System. |
 
 Die App zeichnet in einem Shadow Root, daher vermischen sich die Stile der Seite und die der App nicht; die Schrift
 übernimmt sie von der Seite. Sie hat keinen eigenen Namen, kein Symbol und keine Links – die gehören zur Seite. Die
 Texte jeder Sprache liegen in einer Datei neben `minikeyboard.js` und werden relativ dazu geladen, wenn diese Sprache
 gewählt wird – stelle den ganzen Ordner `dist/` zusammen bereit.
+
+Ein eigener Build kann die App ergänzen: `MiniKeyboardElement` aus `src/app/index.ts` ableiten, aus `footer()` eine
+Svelte-Komponente zurückgeben – sie wird ganz unten in der App gezeichnet, in deren Farben und der gerade angezeigten
+Sprache – und die Unterklasse mit `defineMiniKeyboard()` registrieren.
+
+Die App teilt der Seite außerdem mit, was geschieht: bei jeder Verbindung, jedem Lesen und Speichern, jeder Antwort
+auf die Zugriffsanfrage und jedem Problem ein `minikeyboard`-Ereignis – es steigt auf und verlässt den Shadow Root.
+`detail.action` ist `connect`, `read`, `save`, `access` oder `problem`, mit der Art der Tastatur und dem Ergebnis,
+aber nie mit dem, was auf die Tasten gelegt wurde. Die App selbst sendet nirgendwohin etwas.
 
 ## Build
 

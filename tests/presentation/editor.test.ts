@@ -11,7 +11,7 @@ import {
     controlKey,
     type AttachedKeyboard,
 } from "$domain";
-import { ControlRef, EditorTab, LedColor, Notice, Rgb, SimulatorChoice } from "$presentation";
+import { ControlRef, EditorTab, LedColor, Notice, Rgb, SimulatorChoice, type EditorEvent } from "$presentation";
 import { A, C, FakeSource, control, fixture, hold, k8840, key, settle } from "./fakes";
 
 const KEY1 = ControlRef.key(1);
@@ -543,5 +543,78 @@ describe("the simulator", () => {
         source.source = { kind: "simulated", model };
         const { editor } = await fixture({ source });
         expect(editor.activeSimulatorId()).toBe(SimulatedModel.id(model));
+    });
+});
+
+describe("what the editor tells the page", () => {
+    /** A connection, the read made on connecting, then saves — each told once, with kinds and outcomes only. */
+    it("a connection, its read and saves", async () => {
+        const { editor, device, plug } = await fixture();
+        const events: EditorEvent[] = [];
+        editor.onEvent((event) => events.push(event));
+        device.identity = KeyboardIdentity.of(6, 1, 12);
+        await plug(k8840());
+        expect(events).toEqual([
+            { action: "connect", usb: "1189:8840", type: 12, format: "standard", knownType: false, simulated: false },
+            { action: "read", result: "complete", automatic: true, simulated: false },
+        ]);
+
+        events.length = 0;
+        editor.select(KEY1);
+        editor.press(key(A));
+        await editor.save();
+        device.keeps = () => KeyAction.media(MediaKey.MUTE);
+        editor.press(key(C));
+        await editor.save();
+        device.failWrite = KeyboardDeviceError.noReply();
+        await editor.save();
+        await editor.read();
+        expect(events).toEqual([
+            { action: "save", result: "matched", simulated: false },
+            { action: "save", result: "differs", simulated: false },
+            { action: "save", result: "failed", simulated: false },
+            { action: "read", result: "complete", automatic: false, simulated: false },
+        ]);
+    });
+
+    /** A keyboard that doesn't answer is told without a type; nothing is told for a save with nothing to save. */
+    it("a keyboard that doesn't answer", async () => {
+        const { editor, plug } = await fixture();
+        const events: EditorEvent[] = [];
+        editor.onEvent((event) => events.push(event));
+        await plug(k8840());
+        await editor.save();
+        expect(events).toEqual([
+            {
+                action: "connect",
+                usb: "1189:8840",
+                type: null,
+                format: "unidentified",
+                knownType: true,
+                simulated: false,
+            },
+        ]);
+    });
+
+    /** Problems are told once each time the connection comes to one; the browser's list, granted or not. */
+    it("problems and the browser's list", async () => {
+        const { editor, connection } = await fixture();
+        const events: EditorEvent[] = [];
+        editor.onEvent((event) => events.push(event));
+        connection.states.send({ kind: "needsPermission" });
+        connection.states.send({ kind: "needsPermission" });
+        connection.states.send({ kind: "openFailed", code: 0 });
+        connection.states.send({ kind: "unsupported" });
+        await settle();
+        await editor.requestAccess();
+        connection.granted = "1189:8840#1";
+        await editor.requestAccess();
+        expect(events).toEqual([
+            { action: "problem", problem: "needsPermission" },
+            { action: "problem", problem: "openFailed" },
+            { action: "problem", problem: "unsupported" },
+            { action: "access", granted: false },
+            { action: "access", granted: true },
+        ]);
     });
 });

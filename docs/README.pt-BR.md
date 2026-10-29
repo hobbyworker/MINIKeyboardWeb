@@ -100,13 +100,22 @@ botão ao lado do status da conexão escolhe qual abrir.
 
 | Atributo | |
 |---|---|
-| `lang` | O idioma da página — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (formas com região, como `ko-KR` ou `zh-TW`, também funcionam). Qualquer outro valor resulta em inglês. |
-| `theme` | `light` ou `dark`; sem ele, o app segue o sistema. |
+| `lang` | O idioma da página — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (formas com região, como `ko-KR` ou `zh-TW`, também funcionam). Qualquer outro valor resulta em inglês. Sem ele, o da página: o `lang` do elemento ou de um ancestral, até o `<html>`. |
+| `theme` | `light` ou `dark`. Sem ele, o app segue o modo escuro da página — `data-theme` (como o Hugo FixIt define), uma classe `dark` ou um `color-scheme` inline em `<html>` ou `<body>` — e, se não houver, o sistema. |
 
 O app desenha em um shadow root, então os estilos da página e os do app não se misturam; ele usa a fonte da página.
 Ele não tem nome, ícone nem links próprios — isso fica a cargo da página. Os textos de cada idioma ficam em um arquivo
 ao lado de `minikeyboard.js`, carregado com caminho relativo a ele quando esse idioma é escolhido — publique a pasta
 `dist/` inteira junto.
+
+Uma build própria pode acrescentar algo ao app: estenda `MiniKeyboardElement` de `src/app/index.ts`, devolva um
+componente Svelte em `footer()` — desenhado no fim do app, com as cores dele e no idioma que ele está mostrando — e
+registre a subclasse com `defineMiniKeyboard()`.
+
+O app também conta à página o que acontece: um evento `minikeyboard` — que se propaga e sai do shadow root — a cada
+conexão, leitura, gravação, resposta ao pedido de permissão e problema. `detail.action` é `connect`, `read`, `save`,
+`access` ou `problem`, com o tipo de teclado e o resultado, mas nunca o que foi atribuído às teclas. O app em si não
+envia nada para lugar nenhum.
 
 ## Compilação
 

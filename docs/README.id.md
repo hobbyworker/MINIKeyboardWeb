@@ -101,13 +101,22 @@ ketik yang diizinkan tercolok, pilih papan ketik yang akan dibuka dengan tombol 
 
 | Atribut | |
 |---|---|
-| `lang` | Bahasa halaman — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (bentuk dengan wilayah seperti `ko-KR` atau `zh-TW` juga bisa). Selain itu, bahasa Inggris. |
-| `theme` | `light` atau `dark`; tanpa atribut ini, aplikasi mengikuti sistem. |
+| `lang` | Bahasa halaman — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (bentuk dengan wilayah seperti `ko-KR` atau `zh-TW` juga bisa). Selain itu, bahasa Inggris. Tanpa atribut ini, bahasa halaman: `lang` milik elemen atau leluhurnya, sampai `<html>`. |
+| `theme` | `light` atau `dark`. Tanpa atribut ini, aplikasi mengikuti mode gelap halaman — `data-theme` (seperti yang dipasang Hugo FixIt), kelas `dark`, atau `color-scheme` inline pada `<html>` atau `<body>` — dan jika tidak ada, sistem. |
 
 Aplikasi menggambar di dalam shadow root, sehingga gaya halaman dan gaya aplikasi tidak bercampur; fonnya diambil dari
 halaman. Aplikasi tidak punya nama, ikon, atau tautan sendiri — semua itu milik halaman. Teks setiap bahasa berada di
 file di samping `minikeyboard.js` dan dimuat relatif terhadapnya saat bahasa itu dipilih — sajikan seluruh folder
 `dist/` bersama-sama.
+
+Build sendiri bisa menambahkan sesuatu ke aplikasi: turunkan `MiniKeyboardElement` dari `src/app/index.ts`, kembalikan
+komponen Svelte dari `footer()` — digambar di bagian paling bawah aplikasi, dengan warna dan bahasa yang sedang
+ditampilkannya — lalu daftarkan subkelasnya dengan `defineMiniKeyboard()`.
+
+Aplikasi juga memberi tahu halaman apa yang terjadi: event `minikeyboard` — yang menggelembung (bubble) dan keluar
+dari shadow root — pada setiap koneksi, pembacaan, penyimpanan, jawaban atas permintaan izin, dan masalah.
+`detail.action` berisi `connect`, `read`, `save`, `access`, atau `problem`, dengan jenis keyboard dan hasilnya, tetapi
+tidak pernah apa yang dipasang pada tombol. Aplikasi itu sendiri tidak mengirim apa pun ke mana pun.
 
 ## Build
 

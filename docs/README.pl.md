@@ -101,12 +101,21 @@ jest kilka dozwolonych klawiatur, przycisk obok stanu połączenia wybiera tę, 
 
 | Atrybut | |
 |---|---|
-| `lang` | Język strony — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (działają też formy z regionem, takie jak `ko-KR` czy `zh-TW`). Każda inna wartość oznacza angielski. |
-| `theme` | `light` lub `dark`; bez tego atrybutu aplikacja używa ustawienia systemu. |
+| `lang` | Język strony — `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (działają też formy z regionem, takie jak `ko-KR` czy `zh-TW`). Każda inna wartość oznacza angielski. Bez niego — język strony: `lang` elementu lub przodka, aż do `<html>`. |
+| `theme` | `light` lub `dark`. Bez tego atrybutu aplikacja używa trybu ciemnego strony — `data-theme` (tak jak ustawia go Hugo FixIt), klasy `dark` lub `color-scheme` w stylu wbudowanym na `<html>` albo `<body>` — a w przeciwnym razie ustawienia systemu. |
 
 Aplikacja rysuje w shadow root, więc style strony i aplikacji się nie mieszają; czcionkę przejmuje ze strony. Nie ma
 własnej nazwy, ikony ani linków — to należy do strony. Teksty każdego języka są w pliku obok `minikeyboard.js`,
 wczytywanym względem niego, gdy zostanie wybrany ten język — udostępnij cały folder `dist/` razem.
+
+Własna kompilacja może coś dodać do aplikacji: odziedzicz po `MiniKeyboardElement` z `src/app/index.ts`, zwróć
+komponent Svelte z `footer()` — zostanie narysowany na samym dole aplikacji, w jej kolorach i w języku, który pokazuje
+— i zarejestruj podklasę przez `defineMiniKeyboard()`.
+
+Aplikacja informuje też stronę o tym, co się dzieje: przy każdym połączeniu, odczycie, zapisie, odpowiedzi na prośbę o
+dostęp i problemie wysyła zdarzenie `minikeyboard` — które się propaguje i wychodzi poza shadow root. `detail.action`
+to `connect`, `read`, `save`, `access` lub `problem`, z rodzajem klawiatury i wynikiem, ale nigdy z tym, co przypisano
+klawiszom. Sama aplikacja niczego nigdzie nie wysyła.
 
 ## Budowanie
 

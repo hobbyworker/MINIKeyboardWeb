@@ -10,6 +10,7 @@ export type { ControlTitle, KnobAction } from "./choices";
 export { DeviceLogModel, LogLine, type LogDirection, type LogEvent } from "./device-log";
 export { LayoutRect } from "./drawing/rect";
 export { EditorModel, type EditorDependencies } from "./editor";
+export type { EditorEvent } from "./events";
 export {
     BoardCap,
     KeyGroupKind,

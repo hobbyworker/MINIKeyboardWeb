@@ -71,10 +71,14 @@ MINIKeyboard 有四個依相同規則製作的版本——相同的指令、相�
 
 | 屬性 | |
 |---|---|
-| `lang` | 頁面的語言：`en`、`ko`、`ja`、`zh-hans`、`zh-hant`、`es`、`pt`、`fr`、`de`、`it`、`pl`、`id`、`vi`（`ko-KR`、`zh-TW` 這類帶地區的形式也可以）。其他值一律為英文。 |
-| `theme` | `light` 或 `dark`；未指定時跟隨系統。 |
+| `lang` | 頁面的語言：`en`、`ko`、`ja`、`zh-hans`、`zh-hant`、`es`、`pt`、`fr`、`de`、`it`、`pl`、`id`、`vi`（`ko-KR`、`zh-TW` 這類帶地區的形式也可以）。其他值一律為英文。未指定時跟隨頁面：元素或其祖先（直到 `<html>`）的 `lang`。 |
+| `theme` | `light` 或 `dark`。未指定時跟隨頁面的深色模式（`<html>` 或 `<body>` 上的 `data-theme`（Hugo FixIt 的做法）、`dark` 類別或行內的 `color-scheme`），都沒有時跟隨系統。 |
 
 App 在 shadow root 中繪製，因此頁面的樣式和 App 的樣式不會混在一起；字型沿用頁面的字型。App 沒有自己的名稱、圖像或連結——這些由頁面負責。各語言的文字是 `minikeyboard.js` 旁邊的檔案，選擇該語言時以 `minikeyboard.js` 為基準依相對路徑載入——請將整個 `dist/` 資料夾一起部署。
+
+自己的建置可以為 App 加上內容：繼承 `src/app/index.ts` 中的 `MiniKeyboardElement`，在 `footer()` 中回傳一個 Svelte 元件——它會以 App 的顏色和目前顯示的語言繪製在 App 的最下方——然後用 `defineMiniKeyboard()` 註冊這個子類別。
+
+App 也會把發生的事告訴頁面：每次連線、讀取、儲存、授權請求得到回覆以及發生問題時，都會發出一個 `minikeyboard` 事件（會冒泡，並能傳出 shadow root），`detail.action` 為 `connect`、`read`、`save`、`access` 或 `problem`。它只包含鍵盤的類型和結果，不包含按鍵被設定成了什麼。App 本身不會向任何地方傳送任何內容。
 
 ## 建置
 

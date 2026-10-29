@@ -10,22 +10,25 @@
     import Icon from "./Icon.svelte";
     import Inspector from "./Inspector.svelte";
     import KeyboardArea from "./KeyboardArea.svelte";
-    import { t } from "./l10n.svelte";
+    import { language, t } from "./l10n.svelte";
     import LayoutSheet from "./LayoutSheet.svelte";
     import { Live } from "./live.svelte";
     import { noticeMessage } from "./names";
     import PermissionGuide from "./PermissionGuide.svelte";
-    import type { Platform, Theme } from "./props";
+    import type { AppFooter, Platform, Theme } from "./props";
 
     let {
         editor,
         deviceLog,
+        footer: Footer = null,
         theme,
         platform,
         allSimulators,
     }: {
         editor: EditorModel;
         deviceLog: DeviceLogModel;
+        /** A build's own content below the app (none in this one). */
+        footer?: AppFooter | null;
         theme: Theme;
         platform: Platform;
         allSimulators: boolean;
@@ -178,6 +181,10 @@
             </div>
             <DeviceLogView {log} />
         </section>
+    {/if}
+
+    {#if Footer}
+        <Footer language={language()} />
     {/if}
 
     <div class="toasts" aria-live="polite">

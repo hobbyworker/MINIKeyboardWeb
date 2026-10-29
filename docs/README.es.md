@@ -99,13 +99,22 @@ conectados, un botón junto al estado de la conexión elige cuál abrir.
 
 | Atributo | |
 |---|---|
-| `lang` | El idioma de la página: `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (también sirven las formas con región, como `ko-KR` o `zh-TW`). Con cualquier otro, la app aparece en inglés. |
-| `theme` | `light` o `dark`; sin él, la app sigue al sistema. |
+| `lang` | El idioma de la página: `en`, `ko`, `ja`, `zh-hans`, `zh-hant`, `es`, `pt`, `fr`, `de`, `it`, `pl`, `id`, `vi` (también sirven las formas con región, como `ko-KR` o `zh-TW`). Con cualquier otro, la app aparece en inglés. Sin él, el de la página: el `lang` del elemento o de un antecesor, hasta `<html>`. |
+| `theme` | `light` o `dark`. Sin él, la app sigue el modo oscuro de la página —`data-theme` (como lo pone Hugo FixIt), una clase `dark` o un `color-scheme` en línea en `<html>` o `<body>`— y, si no, el sistema. |
 
 La app dibuja en un shadow root, así que los estilos de la página y los de la app no se mezclan; toma la fuente de la
 página. No tiene nombre, icono ni enlaces propios: eso le corresponde a la página. Los textos de cada idioma están en
 un archivo junto a `minikeyboard.js`, que se carga con una ruta relativa a él cuando se elige ese idioma, así que
 sirve toda la carpeta `dist/` junta.
+
+Una compilación propia puede añadir algo a la app: hereda de `MiniKeyboardElement` en `src/app/index.ts`, devuelve un
+componente de Svelte desde `footer()` —se dibuja al final de la app, con sus colores y en el idioma que muestra— y
+registra la subclase con `defineMiniKeyboard()`.
+
+La app también le cuenta a la página lo que ocurre: un evento `minikeyboard` —que se propaga y sale del shadow root—
+en cada conexión, lectura, guardado, respuesta a la solicitud de permiso y problema. `detail.action` es `connect`,
+`read`, `save`, `access` o `problem`, con el tipo de teclado y el resultado, pero nunca lo que se asignó a las teclas.
+La app en sí no envía nada a ninguna parte.
 
 ## Compilación
 
